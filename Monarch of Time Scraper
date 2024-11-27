@@ -1,0 +1,59 @@
+// ==UserScript==
+// @name         Monarch of Time Scraper
+// @namespace    http://tampermonkey.net/
+// @version      2024-11-27
+// @description  Scrapes title and <p> content from the page and allows saving as a .txt file
+// @author       xLooter
+// @match        https://www.lightnovelworld.co/novel/*
+// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Function to trigger file download
+    function saveAsTxtFile(filename, text) {
+        const blob = new Blob([text], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href); // Clean up
+    }
+
+    // Function to scrape title and content
+    function scrapeData() {
+        const titleElement = document.querySelector('#chapter-article > section > div.titles > h1 > span.chapter-title');
+        const contentElements = document.querySelectorAll('#chapter-container p'); // Only <p> tags
+
+        if (titleElement && contentElements.length > 0) {
+            const title = titleElement.textContent.trim();
+            const content = Array.from(contentElements)
+                .map(p => p.textContent.trim())
+                .join('\n\n'); // Join paragraphs with double line breaks
+            return { title, content };
+        } else {
+            alert('Could not find title or content on this page.');
+            return null;
+        }
+    }
+
+    // Main script execution
+    function main() {
+        const data = scrapeData();
+        if (data) {
+            const { title, content } = data;
+            const combinedText = `${title}\n\n${content}`;
+
+            // Prompt the user to save or cancel
+            if (confirm('Do you want to save the scraped data as a .txt file?')) {
+                const safeTitle = title.replace(/[<>:"/\\|?*]+/g, '_'); // Sanitize file name
+                saveAsTxtFile(`${safeTitle}.txt`, combinedText);
+            }
+        }
+    }
+
+    // Run the script when the page is fully loaded
+    window.addEventListener('load', main);
+})();
