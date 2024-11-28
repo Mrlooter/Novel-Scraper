@@ -1,0 +1,107 @@
+// ==UserScript==
+// @name         [Working] Linkvertise and KRNL Bypasser
+// @namespace    http://tampermonkey.net/
+// @homepageURL  https://bypass.city
+// @description  Bypasses Linkvertise and KRNL links by automating the process.
+// @author       Discord: varram#6209
+// @match        *://*.linkvertise.com/*
+// @match        *://*.linkvertise.net/*
+// @match        *://*.link-to.net/*
+// @match        *://bypass.city/*
+// @match        http://localhost:3000/*
+// @exclude      *://publisher.linkvertise.com/*
+// @exclude      *://linkvertise.com/*
+// @exclude      *://linkvertise.com/search*
+// @exclude      *://blog.linkvertise.com/*
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_deleteValue
+// @grant        GM_xmlhttpRequest
+// @version      11.0.6
+// @connect      bypass.city
+// @icon         https://bypass.city/favicon.ico
+// ==/UserScript==
+
+(() => {
+    // Injects script information for debugging or compatibility purposes
+    const injectScriptInfo = () => {
+        const scriptInfo = `
+            window.scriptInfo = {
+                version: "11.0.6",
+                buildTime: "11/9/2023, 7:39:06 PM",
+                branch: "release",
+                release: "5c96a51",
+                installed: true,
+            }
+        `;
+        const script = document.createElement("script");
+        script.textContent = scriptInfo;
+        document.body.appendChild(script);
+    };
+
+    // Displays notifications for the bypass process
+    const notify = ({ title = "", text = "", isHelp = false }) => {
+        const notification = document.createElement("div");
+        notification.className = "notification";
+        notification.innerHTML = `
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h3>${title}</h3>
+                    <p>${text}</p>
+                    ${isHelp ? '<a href="https://discord.gg/tX8G9G5BMV">Get Support</a>' : ""}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000); // Remove notification after 5 seconds
+    };
+
+    // Utility function to delay actions
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    // Matches Linkvertise URLs for bypassing
+    const matchLinkvertise = (url) => {
+        const regex = /https?:\/\/(linkvertise\.(com|download)|(link-(center|target|hub|to)|direct-link|file-link)\.net)/i;
+        return regex.test(url) && !url.startsWith("https://linkvertise.com/profile") && !url.startsWith("https://linkvertise.com/login");
+    };
+
+    // Handles Linkvertise links bypassing logic
+    const linkvertiseListener = async () => {
+        if (!matchLinkvertise(window.location.href)) return;
+
+        const bypassData = GM_getValue("bypass.data");
+        if (bypassData) {
+            if (window.location.href.includes("linkvertise.com/48193/")) {
+                notify({ title: "KRNL DETECTED!", text: "Bypassing KRNL. Please wait 15 seconds..." });
+                await sleep(15000);
+            } else {
+                notify({ title: "Bypassing Linkvertise..." });
+                await sleep(2000);
+            }
+
+            const targetUrl = bypassData.bypassData;
+            GM_deleteValue("bypass.data");
+            window.open(targetUrl, "_self");
+        } else {
+            notify({ title: "Fetching bypass data..." });
+            await sleep(2000);
+
+            const bypassCityUrl = new URL("https://bypass.city/bypass");
+            bypassCityUrl.searchParams.set("bypass", encodeURIComponent(window.location.href));
+            bypassCityUrl.searchParams.set("userscript", "true");
+            bypassCityUrl.searchParams.set("userscript-version", "11.0.6");
+
+            window.open(bypassCityUrl.href, "_self");
+        }
+    };
+
+    // Initialize listeners for bypassing
+    const initialize = async () => {
+        console.info("Linkvertise Userscript", "Version 11.0.6");
+        injectScriptInfo();
+        await linkvertiseListener();
+    };
+
+    // Execute the script
+    initialize();
+})();
