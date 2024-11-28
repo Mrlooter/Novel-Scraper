@@ -5,6 +5,7 @@
 // @description  Scrapes title and <p> content from the page and allows saving as a .txt file
 // @author       xLooter
 // @match        https://novelbin.com/b/*
+// @match        https://novelbin.lanovels.net/book/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant        none
 // ==/UserScript==
@@ -39,8 +40,8 @@
         }
     }
 
-    // Main script execution
-    function main() {
+    // Function to handle the save process
+    function handleSave() {
         const data = scrapeData();
         if (data) {
             const { title, content } = data;
@@ -54,6 +55,11 @@
         }
     }
 
-    // Run the script when the page is fully loaded
-    window.addEventListener('load', main);
+    // Listen for Ctrl + C key combination
+    window.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key === 'c') {
+            event.preventDefault(); // Prevent default copy action
+            handleSave();
+        }
+    });
 })();
