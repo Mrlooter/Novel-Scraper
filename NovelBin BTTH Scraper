@@ -6,6 +6,7 @@
 // @author       xLooter
 // @match        https://novelbin.com/b/*
 // @match        https://novelbin.lanovels.net/book/*
+// @match        https://novelbin.me/novel-book/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant        none
 // ==/UserScript==
